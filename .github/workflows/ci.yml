@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  test:
+    name: Lint and test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm test
+
+  actionlint:
+    name: Lint workflows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: -color
+
+  # Runs the action itself, from this checkout, against the PR in dry-run: proves action.yml
+  # loads on the declared runtime and that the GitHub API calls work with a read-only token.
+  self-test:
+    name: Dry run on this PR
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: blame
+        uses: ./
+        with:
+          dry-run: true
+          components: |
+            source: src/
+            tests: test/
+            ci: .github/
+      - name: Check outputs
+        env:
+          GIANT: ${{ steps.blame.outputs.giant }}
+          POSTED: ${{ steps.blame.outputs.posted }}
+          SKIPPED: ${{ steps.blame.outputs.skipped }}
+          FILES: ${{ steps.blame.outputs.files }}
+        run: |
+          echo "giant=$GIANT posted=$POSTED skipped=$SKIPPED files=$FILES"
+          test "$POSTED" = false
+          test -n "$SKIPPED" || test -n "$FILES"

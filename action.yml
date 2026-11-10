@@ -1,0 +1,106 @@
+name: Giant PR Blame
+description: >-
+  Measures a pull request and, when it is truly giant, posts a lightly accusatory Slack
+  message that @-mentions its author.
+author: Monkeyjump Labs
+branding:
+  icon: alert-triangle
+  color: orange
+
+inputs:
+  slack-bot-token:
+    description: >-
+      Slack bot token (xoxb-...). Scopes: chat:write, users:read, users:read.email. Required
+      unless dry-run is true.
+    required: false
+  slack-channel:
+    description: Slack channel ID to post in. The bot must be a member. Required unless dry-run is true.
+    required: false
+  github-token:
+    description: >-
+      Token that reads the PR and adds the label. Needs pull-requests: write and issues: write
+      (or read-only for dry-run).
+    required: false
+    default: ${{ github.token }}
+  pr-number:
+    description: The pull request to judge. Defaults to the PR of the triggering event.
+    required: false
+    default: ${{ github.event.pull_request.number }}
+  repository:
+    description: owner/name of the repository. Defaults to the current repository.
+    required: false
+  label:
+    description: >-
+      Label added when the shame is posted. A PR with this label is never posted again;
+      remove it to let the PR be judged again. Default giant-pr.
+    required: false
+  big-lines:
+    description: Weighted lines that count as big. 0 disables. Default 1500.
+    required: false
+  big-files:
+    description: Files changed that count as big. 0 disables. Default 50.
+    required: false
+  big-components:
+    description: Components touched that count as big. 0 disables. Default 3.
+    required: false
+  big-required:
+    description: How many big thresholds a PR must cross to be giant. Default 2.
+    required: false
+  absurd-lines:
+    description: Weighted lines that make a PR giant on their own. 0 disables. Default 4000.
+    required: false
+  absurd-files:
+    description: Files changed that make a PR giant on their own. 0 disables. Default 150.
+    required: false
+  absurd-components:
+    description: Components touched that make a PR giant on their own. 0 disables. Default 5.
+    required: false
+  deletion-weight:
+    description: How much a deleted line counts, against 1 for an added line. Default 0.5.
+    required: false
+  components:
+    description: >-
+      Newline-separated "name: path/prefix/" pairs. A file belongs to the first component
+      whose prefix it starts with. Repeat a name to give it several prefixes.
+    required: false
+  unmatched-component:
+    description: >-
+      Component name for files outside every prefix, or "none" to not count them. Default
+      repo.
+    required: false
+  component-ignore-patterns:
+    description: >-
+      Newline-separated regular expressions. Matching files still count toward lines and
+      files but do not count as touching a component (for example a release manifest).
+    required: false
+  ignore-patterns:
+    description: >-
+      Newline-separated regular expressions, added to the defaults. Matching files count
+      toward nothing.
+    required: false
+  use-default-ignore-patterns:
+    description: Ignore lock files, snapshots, minified files and other generated files. Default true.
+    required: false
+  dry-run:
+    description: Measure and print the message, but do not label or post. Default false.
+    required: false
+
+outputs:
+  giant:
+    description: '"true" when the PR is giant.'
+  posted:
+    description: '"true" when the message was posted to Slack.'
+  skipped:
+    description: Why the PR was not judged ("draft" or "labeled"), or empty.
+  lines:
+    description: Weighted lines changed, excluding ignored files.
+  files:
+    description: Files changed, excluding ignored files.
+  components:
+    description: Comma-separated components touched.
+  slack-user-id:
+    description: Slack member ID of the author, when one was found.
+
+runs:
+  using: node24
+  main: src/index.mjs

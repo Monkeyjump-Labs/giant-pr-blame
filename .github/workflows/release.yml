@@ -1,0 +1,53 @@
+# release-please keeps a release PR open from the conventional commits on main. Merging it
+# tags vX.Y.Z and publishes a GitHub release; the second job then moves the vX and vX.Y
+# tags to it, so `uses: Monkeyjump-Labs/giant-pr-blame@v1` follows every v1 release.
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    outputs:
+      created: ${{ steps.release.outputs.release_created }}
+      tag: ${{ steps.release.outputs.tag_name }}
+      major: ${{ steps.release.outputs.major }}
+      minor: ${{ steps.release.outputs.minor }}
+    steps:
+      # A RELEASE_PLEASE_TOKEN secret (a PAT or app token) lets CI run on the release PR;
+      # the default GITHUB_TOKEN works, but its PRs do not trigger workflows.
+      - id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+
+  major-tags:
+    needs: release-please
+    if: needs.release-please.outputs.created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Move vX and vX.Y to the new release
+        env:
+          TAG: ${{ needs.release-please.outputs.tag }}
+          MAJOR: ${{ needs.release-please.outputs.major }}
+          MINOR: ${{ needs.release-please.outputs.minor }}
+        run: |
+          git fetch --force --tags origin
+          git tag --force "v${MAJOR}" "${TAG}^{commit}"
+          git tag --force "v${MAJOR}.${MINOR}" "${TAG}^{commit}"
+          git push --force origin "refs/tags/v${MAJOR}" "refs/tags/v${MAJOR}.${MINOR}"
