@@ -132,14 +132,20 @@ test('every possible message renders cleanly', () => {
     { ...metrics, deletions: 0 },
     { ...metrics, lines: 500_000, components: [] },
   ];
+  // One step per entry of the largest pool, so every index of every pool is reached.
+  const steps = Math.max(
+    OPENERS.length,
+    CLOSERS.length,
+    ...Object.values(ROASTS).flatMap((byMetric) => Object.values(byMetric).map((l) => l.length)),
+  );
   for (const m of shapes) {
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < steps; i++) {
       const text = message({
         pr,
         slackUserId: 'U1',
         metrics: m,
         verdict: everything,
-        random: () => i / 100,
+        random: () => i / steps,
       });
       assert.doesNotMatch(text, /undefined|NaN|\[object|function/, text);
     }
