@@ -71,6 +71,51 @@ test('the pools are big enough to vary, with no duplicates', () => {
   }
 });
 
+// Every line in every pool, rendered, so the uniqueness checks see what Slack would see.
+function everyLine(m) {
+  return [
+    ...OPENERS.map((o) => o('WHO', 'LINK')),
+    ...CLOSERS,
+    ...Object.values(ROASTS).flatMap((byMetric) =>
+      Object.values(byMetric).flatMap((list) => list.map((r) => r(m))),
+    ),
+    ...BONUSES.flatMap((b) => b.lines.map((l) => (typeof l === 'function' ? l(m) : l))),
+  ];
+}
+
+test('no two lines anywhere open with the same words', () => {
+  // Drop the emoji, fold numbers together, and compare the first three words.
+  const start = (text) =>
+    text
+      .replace(/^:[\w+-]+:\s*/, '')
+      .toLowerCase()
+      .replace(/\d[\d,.]*/g, '#')
+      .split(/\s+/)
+      .slice(0, 3)
+      .map((w) => w.replace(/[^\w#]/g, ''))
+      .join(' ');
+  const seen = new Map();
+  for (const text of everyLine(metrics)) {
+    const key = start(text);
+    assert.ok(!seen.has(key), `"${text}" opens like "${seen.get(key)}"`);
+    seen.set(key, text);
+  }
+});
+
+test('each sentence frame is used at most once across every pool', () => {
+  const frames = {
+    'not X, that is Y': /\bnot an? [^,.]+[,.] (that|this|it) is an?\b/i,
+    'less X and more Y': /\bless an? .+\bmore an?\b/i,
+    'did not X. They Y': /\bdid not \w+ an? \w+\. they\b/i,
+    'punchline in parentheses': /\(.+\)$/,
+  };
+  const all = everyLine(metrics);
+  for (const [name, frame] of Object.entries(frames)) {
+    const uses = all.filter((text) => frame.test(text));
+    assert.ok(uses.length <= 1, `${name} is used ${uses.length} times:\n${uses.join('\n')}`);
+  }
+});
+
 test('every opener names the author and links the PR exactly once', () => {
   for (const opener of OPENERS) {
     const text = opener('WHO', 'LINK');
@@ -88,13 +133,13 @@ test('every possible message renders cleanly', () => {
     { ...metrics, lines: 500_000, components: [] },
   ];
   for (const m of shapes) {
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 100; i++) {
       const text = message({
         pr,
         slackUserId: 'U1',
         metrics: m,
         verdict: everything,
-        random: () => i / 40,
+        random: () => i / 100,
       });
       assert.doesNotMatch(text, /undefined|NaN|\[object|function/, text);
     }
