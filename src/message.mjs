@@ -3,6 +3,10 @@
 // A message is: one opener, one roast per threshold crossed (picked from that threshold's
 // pool), up to one bonus line about the PR's shape, the stats line, and one closer. Every
 // pool is picked from at random, so the same PR rarely gets the same message twice.
+//
+// Each joke should have its own shape. A sentence frame ("That is not X, that is Y") or an
+// opening that one line uses should not show up in another, so a channel that sees many
+// giant PRs does not start to recognise the template. The tests check for repeats.
 
 const fmt = (n) => n.toLocaleString('en-US');
 
@@ -15,7 +19,8 @@ export const OPENERS = [
   (who, link) => `:elephant: A wild giant PR appeared! ${who} summoned ${link}.`,
   (who, link) => `:scroll: Hear ye, hear ye. ${who} hath delivered ${link}, and lo, it is long.`,
   (who, link) => `:truck: Beep beep. ${who} just backed a dump truck of code up to ${link}.`,
-  (who, link) => `:ocean: ${who} did not open a PR. They opened an ocean: ${link}.`,
+  (who, link) =>
+    `:ocean: No shoreline is visible from anywhere in ${link}. ${who} is on lifeguard duty.`,
   (who, link) =>
     `:mag: Scientists have discovered a new largest PR. It belongs to ${who}: ${link}.`,
   (who, link) =>
@@ -28,15 +33,16 @@ export const OPENERS = [
   (who, link) =>
     `:volcano: Seismologists report a major event in the repo. Epicenter: ${link}. Cause: ${who}.`,
   (who, link) =>
-    `:loudspeaker: Would the owner of ${link} please come to the front desk. Oh wait, we know who it is. Hi, ${who}.`,
+    `:loudspeaker: Would the owner of ${link} please come to the front desk. ${who}, your PR is blocking the aisle.`,
   (who, link) => `:whale: Thar she blows! ${who} has harpooned the review queue with ${link}.`,
-  (who, link) => `:construction: ${who} opened ${link}. Reviewers, please put on your hard hats.`,
+  (who, link) =>
+    `:construction: ${who} has broken ground on ${link}. Hard hats are mandatory past this point.`,
   (who, link) =>
     `:clapper: Previously, on "Small PRs": nothing, because ${who} just opened ${link}.`,
   (who, link) =>
-    `:moyai: The ancients spoke of a PR so large it had its own weather. ${who} has opened ${link}.`,
+    `:moyai: The ancients spoke of a PR so large it had its own weather. ${who} made it real: ${link}.`,
   (who, link) =>
-    `:ship: ${who} has launched ${link}. It is less a pull request and more a container ship.`,
+    `:ship: Tugboats are on their way to guide ${link} into port, with ${who} at the wheel.`,
   (who, link) =>
     `:weight_lifter: ${who} has asked the team to review ${link}. We have started stretching.`,
   (who, link) =>
@@ -45,8 +51,9 @@ export const OPENERS = [
     `:crystal_ball: The prophecy foretold a PR of unusual size. ${who} has fulfilled it: ${link}.`,
   (who, link) => `:pizza: ${who} ordered a family-size PR: ${link}. Extra everything.`,
   (who, link) =>
-    `:newspaper: Breaking news: ${who} has opened ${link}, and early estimates suggest it is "a lot".`,
-  (who, link) => `:european_castle: ${who} did not build a feature. They built a castle: ${link}.`,
+    `:newspaper: Breaking news: ${who} has filed ${link}, and early estimates suggest it is "a lot".`,
+  (who, link) =>
+    `:european_castle: A feature was requested. ${who} delivered a castle instead: ${link}.`,
   (who, link) =>
     `:satellite: Ground control to the review team. ${link} by ${who} has entered orbit.`,
   (who, link) =>
@@ -55,8 +62,17 @@ export const OPENERS = [
     `:mountain: ${who} looked at the review queue and asked, "What if it were a mountain?" Behold: ${link}.`,
   (who, link) => `:bell: Ding ding. ${who} rang the giant PR bell with ${link}.`,
   (who, link) => `:dragon: Here be dragons. Specifically, ${link}. Specifically, ${who}.`,
-  (who, link) => `:receipt: ${who} has opened ${link}. The receipt alone is longer than most PRs.`,
+  (who, link) => `:receipt: ${who} checked out ${link}. The receipt alone is longer than most PRs.`,
   (who, link) => `:balloon: ${who} has inflated ${link} to a size we did not think was possible.`,
+  (who, link) =>
+    `:jigsaw: Here is a 5,000-piece puzzle with no picture on the box: ${link}, courtesy of ${who}.`,
+  (who, link) =>
+    `:hourglass: ${who} has booked the whole team's afternoon. The meeting is called ${link}.`,
+  (who, link) =>
+    `:circus_tent: Step right up! ${who} presents ${link}, the greatest diff on earth.`,
+  (who, link) => `:train: All aboard ${link}, the ${who} express. Nobody knows when it arrives.`,
+  (who, link) =>
+    `:octopus: Something enormous has surfaced in the review queue. Witnesses describe ${link} and say ${who} was seen nearby.`,
 ];
 
 export const CLOSERS = [
@@ -65,17 +81,17 @@ export const CLOSERS = [
   'We are not mad. We are just disappointed. And a little scared.',
   '"LGTM" on this one will be considered perjury.',
   'Remember: the PR template does not have a "trust me" checkbox.',
-  'Who did this? (We know who did this.)',
+  'An investigation into who did this has concluded in record time.',
   'Thoughts and prayers to whoever is assigned.',
   'In lieu of flowers, please send reviewers.',
   'This message will repeat on every giant PR until morale improves.',
-  'Small PRs. Small PRs. Small PRs. (We will keep saying it.)',
+  'Small PRs. Small PRs. Small PRs. Say it with us.',
   'Fun fact: it is never too late to split a PR. Today, for example, is not too late.',
   'Reviewers, remember to hydrate.',
   'Estimated review time: yes.',
   'Please keep your hands and feet inside the diff at all times.',
   'The team would like to remind everyone that "one more small change" is how this started.',
-  'We have notified the next of kin. (The reviewers.)',
+  'The next of kin of every reviewer have been informed.',
   'Somewhere, a CI runner just sighed.',
   'No PRs were harmed in the making of this message. Several reviewers were.',
   'Please rate your reviewing experience from 1 to "I need a nap".',
@@ -83,54 +99,60 @@ export const CLOSERS = [
   'History will remember this PR. Reviewers will try to forget it.',
   'Bold of you to assume anyone will read every line.',
   'This is fine. :fire:',
-  'Do not worry, it is "mostly just moving things around". (It is never just moving things around.)',
+  '"Mostly just moving things around" has never once been true.',
   'The reviewers have unionized.',
   'If found, please return the original scope to the ticket.',
   'Approving this without reading it is a lifestyle choice.',
   'We will be telling our grandchildren about this one.',
   'Brought to you by the Committee for Smaller Pull Requests.',
-  'Merge conflicts not included. (They will be.)',
+  'Merge conflicts are sold separately and arrive tomorrow.',
+  'Allow 6 to 8 weeks for approval.',
+  'A moment of silence for the notification bell.',
+  'Anyone who reaches the last line will receive a commemorative badge.',
 ];
+
+const names = (m) => m.components.join(', ');
 
 // One pool per threshold. Each entry takes the metrics and returns the line.
 export const ROASTS = {
   big: {
     lines: [
-      (m) => `${fmt(m.lines)} weighted lines. That is not a diff, that is a novella.`,
-      (m) => `${fmt(m.lines)} weighted lines. Some books are shorter.`,
-      (m) => `${fmt(m.lines)} weighted lines. The scroll bar has given up and become a dot.`,
-      (m) => `${fmt(m.lines)} weighted lines. Printed out, this would be a fire hazard.`,
+      (m) => `This diff runs ${fmt(m.lines)} weighted lines, which is roughly novella length.`,
+      (m) => `Some books are shorter than these ${fmt(m.lines)} weighted lines.`,
+      (m) => `The scroll bar took one look at ${fmt(m.lines)} weighted lines and shrank to a dot.`,
+      (m) => `Printed out, ${fmt(m.lines)} weighted lines would be a fire hazard.`,
       (m) =>
-        `${fmt(m.lines)} weighted lines. At one line per second, review ends in ${fmtDuration(m.lines)}.`,
-      (m) => `${fmt(m.lines)} weighted lines. Somebody call the Guinness people.`,
-      (m) => `${fmt(m.lines)} weighted lines. The diff has chapters now.`,
-      (m) => `${fmt(m.lines)} weighted lines. "Quick fix", they said.`,
+        `Reading ${fmt(m.lines)} weighted lines at one per second takes ${fmtDuration(m.lines)}. No breaks.`,
+      (m) => `The Guinness people are on the phone about ${fmt(m.lines)} weighted lines.`,
+      (m) => `With ${fmt(m.lines)} weighted lines, the diff has started numbering its chapters.`,
+      (m) => `"Quick fix", they said. ${fmt(m.lines)} weighted lines later, here we are.`,
       (m) => `${fmt(m.lines)} weighted lines. That is not a pull request, that is a push request.`,
-      (m) => `${fmt(m.lines)} weighted lines. The mouse wheel has filed a complaint.`,
+      (m) => `The mouse wheel has filed a complaint about ${fmt(m.lines)} weighted lines.`,
+      (m) =>
+        `Entire microservices have shipped with fewer lines than the ${fmt(m.additions + m.deletions)} this PR changes.`,
+      (m) =>
+        `Around line ${fmt(Math.round(m.lines / 2))}, reviewers will forget where they started.`,
     ],
     files: [
       (m) => `${fmt(m.files)} files. The "Files changed" tab needs a lie down.`,
-      (m) => `${fmt(m.files)} files. That is not a PR, that is a directory listing.`,
-      (m) => `${fmt(m.files)} files. Reviewers will need a map and a compass.`,
-      (m) => `${fmt(m.files)} files. The file tree now has its own file tree.`,
-      (m) => `${fmt(m.files)} files. Some of them have never met each other before today.`,
-      (m) => `${fmt(m.files)} files. We are going to need a bigger "Viewed" checkbox.`,
-      (m) => `${fmt(m.files)} files. Even \`git status\` looked away.`,
-      (m) => `${fmt(m.files)} files touched. Nobody touch anything else.`,
+      (m) => `Just reading the names of all ${fmt(m.files)} files counts as a review.`,
+      (m) => `A map and a compass are required to cross ${fmt(m.files)} files.`,
+      (m) => `Across ${fmt(m.files)} files, the file tree has grown a file tree of its own.`,
+      (m) => `Several of these ${fmt(m.files)} files are meeting each other for the first time.`,
+      (m) => `Ticking "Viewed" on ${fmt(m.files)} files is a workout of its own.`,
+      (m) => `Even \`git status\` looked away from ${fmt(m.files)} files.`,
+      (m) => `Nobody touch anything else. This PR already touched ${fmt(m.files)} files.`,
+      (m) => `Bookmark your place. There are ${fmt(m.files)} files and no save points.`,
     ],
     components: [
+      (m) => `${m.components.length} components (${names(m)}). Cross-component pollution detected.`,
+      (m) => `A grand tour of the codebase, with stops in ${names(m)}.`,
+      (m) => `Every team gets a gift! Today's lucky components: ${names(m)}.`,
+      (m) => `The CODEOWNERS file just got a group chat: ${names(m)}.`,
       (m) =>
-        `${m.components.length} components (${m.components.join(', ')}). Cross-component pollution detected.`,
-      (m) =>
-        `${m.components.length} components (${m.components.join(', ')}). A grand tour of the codebase.`,
-      (m) =>
-        `${m.components.length} components (${m.components.join(', ')}). Every team gets a gift!`,
-      (m) =>
-        `${m.components.length} components (${m.components.join(', ')}). The CODEOWNERS file just got a group chat.`,
-      (m) =>
-        `${m.components.length} components (${m.components.join(', ')}). This PR has more frequent-flyer miles than most of us.`,
-      (m) =>
-        `${m.components.length} components (${m.components.join(', ')}). Boundaries are healthy. This PR has none.`,
+        `After visiting ${m.components.length} components (${names(m)}), this PR has more frequent-flyer miles than most of us.`,
+      (m) => `Boundaries are healthy. This PR crossed every one it found in ${names(m)}.`,
+      (m) => `Representatives from ${names(m)} are wanted in the review room.`,
     ],
   },
   absurd: {
@@ -141,6 +163,8 @@ export const ROASTS = {
       () => 'At this size, the PR is legally a codebase.',
       () => 'Experts recommend reviewing this in shifts.',
       () => 'The diff view is now available as a season pass.',
+      () => 'Someone should write the CliffsNotes.',
+      () => 'Base camp for reviewing this diff opens at dawn.',
     ],
     files: [
       () => 'GitHub has started lazy-loading the diff out of self-defense.',
@@ -148,13 +172,15 @@ export const ROASTS = {
       () => 'The file list needs its own table of contents.',
       () => 'There are files in this PR that the author has never opened.',
       () => 'Browser tabs are crashing in solidarity.',
+      () => 'At least one file in here changed by accident.',
     ],
     components: [
-      () => 'At this point it is less a PR and more a hostile takeover.',
-      () => 'This is not a change. This is a reorg.',
+      () => 'Paperwork for a hostile takeover has been filed.',
+      () => 'The org chart may need updating after this one.',
       () => 'Every component in the repo has received a postcard from this PR.',
       () => 'Release notes for this one will need an index.',
       () => 'This PR has been nominated for a monorepo lifetime achievement award.',
+      () => 'Architects have been called in to redraw the diagram.',
     ],
   },
 };
@@ -165,7 +191,7 @@ export const BONUSES = [
     when: (m) => m.deletions > m.additions * 2,
     lines: [
       'To be fair, it is mostly deletions. We see you, Marie Kondo. :sparkles:',
-      'Mostly deletions, which is nice. Still a lot of deletions, though.',
+      'The deletions outnumber the additions, which is nice. There are still a lot of them.',
       'It is mostly red, which is the good kind of giant. Mostly.',
     ],
   },
@@ -188,6 +214,8 @@ export const BONUSES = [
     lines: [
       (m) =>
         `And ${fmt(m.ignoredFiles)} lock or generated files on top. We did not even count those. We were being nice.`,
+      (m) =>
+        `${fmt(m.ignoredFiles)} lock or generated files came along for the ride, and they ride free.`,
     ],
   },
 ];
@@ -226,7 +254,7 @@ export function message({ pr, slackUserId, metrics: m, verdict: v, random = Math
   const stats =
     `+${fmt(m.additions)} / -${fmt(m.deletions)} · ${fmt(m.files)} files` +
     (m.ignoredFiles ? ` (+${fmt(m.ignoredFiles)} lock/generated, not counted)` : '') +
-    (m.components.length ? ` · components: ${m.components.join(', ')}` : '');
+    (m.components.length ? ` · components: ${names(m)}` : '');
 
   const extra = bonus(m, pick);
   return [

@@ -7,7 +7,7 @@ lightly accusatory message to Slack that @-mentions its author.
 
 > :elephant: A wild giant PR appeared! @Pat summoned #812 Rewrite the billing service.
 >
-> - 3,100 weighted lines. That is not a diff, that is a novella.
+> - This diff runs 3,100 weighted lines, which is roughly novella length.
 > - 4 components (api, billing, web, worker). Cross-component pollution detected.
 >
 > _+3,000 / -200 · 41 files (+2 lock/generated, not counted) · components: api, billing, web, worker_
