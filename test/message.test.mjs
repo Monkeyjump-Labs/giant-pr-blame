@@ -29,7 +29,7 @@ test('message mentions the Slack user and strips mrkdwn control characters', () 
   const text = message({ pr, slackUserId: 'U1', metrics, verdict, random: () => 0 });
   const lines = text.split('\n');
   assert.equal(lines[0], OPENERS[0]('<@U1>', '<https://gh/pr/42|#42 Rewrite everything  more>'));
-  assert.equal(lines[1], '• 3,100 weighted lines. That is not a diff, that is a novella.');
+  assert.equal(lines[1], '• This diff runs 3,100 weighted lines, which is roughly novella length.');
   assert.equal(lines[2], '• 60 files. The "Files changed" tab needs a lie down.');
   // 3,000 added vs 200 deleted: the "more than ten to one" bonus applies.
   assert.match(lines[3], /^• For every line removed, more than ten were added\./);
