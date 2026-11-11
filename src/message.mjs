@@ -20,7 +20,7 @@ export const OPENERS = [
   (who, link) => `:scroll: Hear ye, hear ye. ${who} hath delivered ${link}, and lo, it is long.`,
   (who, link) => `:truck: Beep beep. ${who} just backed a dump truck of code up to ${link}.`,
   (who, link) =>
-    `:ocean: No shoreline is visible from anywhere in ${link}. Lifeguard on duty: ${who}.`,
+    `:ocean: No shoreline is visible from anywhere in ${link}. ${who} is on lifeguard duty.`,
   (who, link) =>
     `:mag: Scientists have discovered a new largest PR. It belongs to ${who}: ${link}.`,
   (who, link) =>
@@ -35,12 +35,14 @@ export const OPENERS = [
   (who, link) =>
     `:loudspeaker: Would the owner of ${link} please come to the front desk. ${who}, your PR is blocking the aisle.`,
   (who, link) => `:whale: Thar she blows! ${who} has harpooned the review queue with ${link}.`,
-  (who, link) => `:construction: Hard hats on, everyone. ${who} has broken ground on ${link}.`,
+  (who, link) =>
+    `:construction: ${who} has broken ground on ${link}. Hard hats are mandatory past this point.`,
   (who, link) =>
     `:clapper: Previously, on "Small PRs": nothing, because ${who} just opened ${link}.`,
   (who, link) =>
     `:moyai: The ancients spoke of a PR so large it had its own weather. ${who} made it real: ${link}.`,
-  (who, link) => `:ship: Tugboats are on their way to guide ${link} into port. Captain: ${who}.`,
+  (who, link) =>
+    `:ship: Tugboats are on their way to guide ${link} into port, with ${who} at the wheel.`,
   (who, link) =>
     `:weight_lifter: ${who} has asked the team to review ${link}. We have started stretching.`,
   (who, link) =>
@@ -51,7 +53,7 @@ export const OPENERS = [
   (who, link) =>
     `:newspaper: Breaking news: ${who} has filed ${link}, and early estimates suggest it is "a lot".`,
   (who, link) =>
-    `:european_castle: Behold the castle ${who} built where a feature was asked for: ${link}.`,
+    `:european_castle: A feature was requested. ${who} delivered a castle instead: ${link}.`,
   (who, link) =>
     `:satellite: Ground control to the review team. ${link} by ${who} has entered orbit.`,
   (who, link) =>
@@ -64,10 +66,11 @@ export const OPENERS = [
   (who, link) => `:balloon: ${who} has inflated ${link} to a size we did not think was possible.`,
   (who, link) =>
     `:jigsaw: Here is a 5,000-piece puzzle with no picture on the box: ${link}, courtesy of ${who}.`,
-  (who, link) => `:hourglass: Clear your calendars. ${who} has scheduled ${link}.`,
+  (who, link) =>
+    `:hourglass: ${who} has booked the whole team's afternoon. The meeting is called ${link}.`,
   (who, link) =>
     `:circus_tent: Step right up! ${who} presents ${link}, the greatest diff on earth.`,
-  (who, link) => `:train: All aboard ${link}. Conductor: ${who}. Arrival time: unknown.`,
+  (who, link) => `:train: All aboard ${link}, the ${who} express. Nobody knows when it arrives.`,
   (who, link) =>
     `:octopus: Something enormous has surfaced in the review queue. Witnesses describe ${link} and say ${who} was seen nearby.`,
 ];
@@ -103,9 +106,9 @@ export const CLOSERS = [
   'We will be telling our grandchildren about this one.',
   'Brought to you by the Committee for Smaller Pull Requests.',
   'Merge conflicts are sold separately and arrive tomorrow.',
-  'Please allow 6 to 8 weeks for approval.',
+  'Allow 6 to 8 weeks for approval.',
   'A moment of silence for the notification bell.',
-  'Reviewers who reach the last line will receive a commemorative badge.',
+  'Anyone who reaches the last line will receive a commemorative badge.',
 ];
 
 const names = (m) => m.components.join(', ');
@@ -120,22 +123,23 @@ export const ROASTS = {
       (m) => `Printed out, ${fmt(m.lines)} weighted lines would be a fire hazard.`,
       (m) =>
         `Reading ${fmt(m.lines)} weighted lines at one per second takes ${fmtDuration(m.lines)}. No breaks.`,
-      (m) => `The Guinness people have been called about ${fmt(m.lines)} weighted lines.`,
+      (m) => `The Guinness people are on the phone about ${fmt(m.lines)} weighted lines.`,
       (m) => `With ${fmt(m.lines)} weighted lines, the diff has started numbering its chapters.`,
       (m) => `"Quick fix", they said. ${fmt(m.lines)} weighted lines later, here we are.`,
       (m) => `${fmt(m.lines)} weighted lines. That is not a pull request, that is a push request.`,
       (m) => `The mouse wheel has filed a complaint about ${fmt(m.lines)} weighted lines.`,
-      (m) => `Entire microservices have shipped with fewer than ${fmt(m.lines)} lines.`,
+      (m) =>
+        `Entire microservices have shipped with fewer lines than the ${fmt(m.additions + m.deletions)} this PR changes.`,
       (m) =>
         `Around line ${fmt(Math.round(m.lines / 2))}, reviewers will forget where they started.`,
     ],
     files: [
       (m) => `${fmt(m.files)} files. The "Files changed" tab needs a lie down.`,
       (m) => `Just reading the names of all ${fmt(m.files)} files counts as a review.`,
-      (m) => `Reviewers will need a map and a compass to cross ${fmt(m.files)} files.`,
+      (m) => `A map and a compass are required to cross ${fmt(m.files)} files.`,
       (m) => `Across ${fmt(m.files)} files, the file tree has grown a file tree of its own.`,
-      (m) => `Some of these ${fmt(m.files)} files have never met each other before today.`,
-      (m) => `Clicking "Viewed" ${fmt(m.files)} times counts as cardio.`,
+      (m) => `Several of these ${fmt(m.files)} files are meeting each other for the first time.`,
+      (m) => `Ticking "Viewed" on ${fmt(m.files)} files is a workout of its own.`,
       (m) => `Even \`git status\` looked away from ${fmt(m.files)} files.`,
       (m) => `Nobody touch anything else. This PR already touched ${fmt(m.files)} files.`,
       (m) => `Bookmark your place. There are ${fmt(m.files)} files and no save points.`,
@@ -147,8 +151,8 @@ export const ROASTS = {
       (m) => `The CODEOWNERS file just got a group chat: ${names(m)}.`,
       (m) =>
         `After visiting ${m.components.length} components (${names(m)}), this PR has more frequent-flyer miles than most of us.`,
-      (m) => `Boundaries are healthy. This PR ignored the ones between ${names(m)}.`,
-      (m) => `Would ${names(m)} please report to the review room.`,
+      (m) => `Boundaries are healthy. This PR crossed every one it found in ${names(m)}.`,
+      (m) => `Representatives from ${names(m)} are wanted in the review room.`,
     ],
   },
   absurd: {
@@ -250,7 +254,7 @@ export function message({ pr, slackUserId, metrics: m, verdict: v, random = Math
   const stats =
     `+${fmt(m.additions)} / -${fmt(m.deletions)} · ${fmt(m.files)} files` +
     (m.ignoredFiles ? ` (+${fmt(m.ignoredFiles)} lock/generated, not counted)` : '') +
-    (m.components.length ? ` · components: ${m.components.join(', ')}` : '');
+    (m.components.length ? ` · components: ${names(m)}` : '');
 
   const extra = bonus(m, pick);
   return [
